@@ -10,9 +10,9 @@ tested in real life scenarios and may be totally wrong.
 
 ## Installation
 
-To use bladegen, you should put the `bladegen.scad` in the OpenSCAD library
-folder that you will find in the `File` menu of OpenSCAD. Additionally you will
-need to install the DiscreteOpenSCAD library
+To use bladegen, you should put the `bladegen` folder from the git `libraries`
+folder to the OpenSCAD library folder that you will find in the `File` menu of
+OpenSCAD. Additionally you will need to install the DiscreteOpenSCAD library
 [BOSL2](https://github.com/revarbat/BOSL2) also in the library folder.
 
 

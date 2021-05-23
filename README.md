@@ -12,10 +12,9 @@ tested in real life scenarios and may be totally wrong.
 
 To use bladegen, you should put the `bladegen.scad` in the OpenSCAD library
 folder that you will find in the `File` menu of OpenSCAD. Additionally you will
-need to install the DiscreteOpenSCAD library file `discrete.scad` also in the
-library folder.
+need to install the DiscreteOpenSCAD library
+[BOSL2](https://github.com/revarbat/BOSL2) also in the library folder.
 
-You will find it at https://github.com/Spiritdude/DiscreteOpenSCAD
 
 
 ## Usage
@@ -44,7 +43,7 @@ To make a hub, it must be done manually by a code something like
 ```openscad
 use <bladegen.scad>
 
-bladegen_metric(diameter = 0.20, inner_radius = 0.010, blades = 5);
+bladegen_metric(diameter = 0.20, inner_radius = 0.010, blades = 5, naca_n = 10);
 difference() {
   translate([0, 0, -3]) cylinder(r = 15, h = 14, center = true); // note slight overlap due to curvature
   cylinder(d = 6, h = 99, center = true);

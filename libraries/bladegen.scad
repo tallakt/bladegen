@@ -1,4 +1,4 @@
-use <discrete.scad>;
+include <BOSL2/std.scad>
 
 // creates a propeller blade
 // it has the correct pitch and a predefined pitch and aspect ratio
@@ -6,24 +6,21 @@ use <discrete.scad>;
 // the blade is one unit long
 
 
-function naca_digits(digits) = 
-  [floor(digits / 1000), floor(digits / 100) % 10, digits % 100];
+function naca_params(digits) = 
+  [0.01 * floor(digits / 1000), 0.1 * (floor(digits / 100) % 10), 0.01 * (digits % 100)];
 
 
-function naca_mean_camber(digits, x) =
-  let ( naca_digits = naca_digits(digits)
-      , m = naca_digits[0] * 0.01
-      , p = naca_digits[1] * 0.1
-      , t = naca_digits[2] * 0.01
+function naca_mean_camber(naca_params, x) =
+  let ( m = naca_params[0]
+      , p = naca_params[1]
+      , t = naca_params[2]
       , pp = (m == 0 || p == 0) ? 1 : p
       )
       (x <= p) ? m / pp^2 * (2 * p * x - x^2) : m / (1 - p)^2 * ((1 - 2 * p) + 2 * p * x - x^2);
 
 
-function naca_thickness(digits, x) =
-  let ( naca_digits = naca_digits(digits)
-      , t = naca_digits[2] * 0.01
-      )
+function naca_thickness(naca_params, x) =
+  let (t = naca_params[2])
       t / 0.2 * (0.2969 * sqrt(x) - 0.1260 * x - 0.3516 * x^2 + 0.2843 * x^3 - 0.1015 * x^4);
       
 
@@ -35,14 +32,14 @@ function blade_cosine_spacing(radius0) =
   sin(radius0 * 90);
 
 
-function dp_naca_top(digits, n = 30) =
+function naca_top_coords(naca_params, n = 30) =
   [
       for (i = [0:n])
         let ( x = cosine_spacing(i / n)
-            , y_t = naca_thickness(digits, x)
-            , y_c = naca_mean_camber(digits, x) 
+            , y_t = naca_thickness(naca_params, x)
+            , y_c = naca_mean_camber(naca_params, x) 
             , delta_x = 0.001
-            , y_c_plus = naca_mean_camber(digits, x + delta_x) 
+            , y_c_plus = naca_mean_camber(naca_params, x + delta_x) 
             , theta = atan2((y_c_plus - y_c), delta_x)
             , x_u = x - y_t * sin(theta)
             , y_u = y_c + y_t * cos(theta)
@@ -51,14 +48,14 @@ function dp_naca_top(digits, n = 30) =
   
   ];
 
-function dp_naca_bottom(digits, n = 30) =
+function naca_bottom_coords(naca_params, n = 30) =
   [
       for (i = [1:(n - 1)])
         let ( x = cosine_spacing((n - i) / n)
-            , y_t = naca_thickness(digits, x)
-            , y_c = naca_mean_camber(digits, x) 
+            , y_t = naca_thickness(naca_params, x)
+            , y_c = naca_mean_camber(naca_params, x) 
             , delta_x = 0.001
-            , y_c_plus = naca_mean_camber(digits, x + delta_x) 
+            , y_c_plus = naca_mean_camber(naca_params, x + delta_x) 
             , theta = atan2((y_c_plus - y_c), delta_x)
             , x_l = x + y_t * sin(theta)
             , y_l = y_c - y_t * cos(theta)
@@ -68,24 +65,14 @@ function dp_naca_bottom(digits, n = 30) =
   ];
 
   
-function dp_naca(digits, n = 50, center = 0.25, chord = 1.0) =
+function naca_coords(digits, n = 50, center = 0.25, chord = 1.0) =
+  let (naca_params = naca_params(digits))
   [
-    for (p = concat(dp_naca_top(digits, n = n), dp_naca_bottom(digits, n = n)))
+    for (p = concat(naca_top_coords(naca_params, n = n), naca_bottom_coords(naca_params, n = n)))
       let ( x0 = p[0]
           , y0 = p[1]
           )
           [(x0 - center) * chord, y0 * chord]
-  ];
-
-
-function dp_mirror_y(points) =
-  [
-    for (p = points) [p[0], -p[1]]
-  ];
-
-function dp_mirror_x(points) =
-  [
-    for (p = points) [p[0], -p[1]]
   ];
 
 
@@ -109,26 +96,24 @@ module bladegen(aspect = 5, pitch = 1, segments = 20, naca = 2412, naca_n = 30, 
             , radius1 = inner_radius + radius_sweep * blade_cosine_spacing((i - 1) / segments)
             , radius2 = inner_radius + radius_sweep * blade_cosine_spacing(i / segments)
             , delta_radius = radius2 - radius1
-            , chord1 = outline_chord(outline, radius1)
-            , chord2 = outline_chord(outline, radius2)
+            , chord1 = max(0.001, outline_chord(outline, radius1))
+            , chord2 = max(0.001, outline_chord(outline, radius2))
             , angle1 = atan2(pitch, 2 * PI * radius1)
             , angle2 = atan2(pitch, 2 * PI * radius2)
-            , profile1 = dp_naca(naca, chord = chord1 / aspect, n = naca_n)
-            , profile2 = dp_naca(naca, chord = chord2 / aspect, n = naca_n)
-            , profile1b = turbine ? dp_mirror_y(profile1) : profile1
-            , profile2b = turbine ? dp_mirror_y(profile2) : profile2
-            , profile1c = dp_rotate(profile1b, angle1 - 90)
-            , profile2c = dp_rotate(profile2b, angle2 - 90)
-            , profile1d = ccw ? profile1c : dp_mirror_x(profile1c)
-            , profile2d = ccw ? profile2c : dp_mirror_x(profile2c)
+            , profile1 = naca_coords(naca, chord = chord1 / aspect, n = naca_n)
+            , profile2 = naca_coords(naca, chord = chord2 / aspect, n = naca_n)
+            , profile1b = turbine ? yflip(profile1) : profile1
+            , profile2b = turbine ? yflip(profile2) : profile2
+            , profile1c = rot(90 - angle1, p = profile1b)
+            , profile2c = rot(90 - angle2, p = profile2b)
+            , profile1d = ccw ? profile1c : xflip(profile1c)
+            , profile2d = ccw ? profile2c : xflip(profile2c)
             ) {
-          translate([radius1, 0, 0]) rotate([0, 90, 0]) {
-            dm_polyhedron(dm_extrude(
-                profile1d,
-                profile2d,
-                1,
-                delta_radius
-                ));
+          yrot(90) {
+            skin([profile1d, profile2d]
+                , slices = 0
+                , z = [radius1, radius2]
+                );
           }
         }
       }

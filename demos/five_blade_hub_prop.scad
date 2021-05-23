@@ -1,9 +1,13 @@
+include <BOSL2/std.scad>
 use <bladegen/bladegen.scad>
 
-bladegen_metric(diameter = 0.20, inner_radius = 0.010, blades = 5, naca_n = 10);
 difference() {
-  translate([0, 0, -3]) cylinder(r = 15, h = 14, center = true); // note slight overlap due to curvature
-  cylinder(d = 6, h = 99, center = true);
+  union() {
+    root_shape = [right(3, yflip(oval(r = [3, 8], $fn = 30))), 10];
+    up(3) bladegen_mm(diameter = 200, inner_radius = 20, blades = 5, naca_n = 10, root_shape = root_shape);
+    cyl(r = 15, h = 10); // note slight overlap due to curvature
+  }
+  cyl(d = 6, h = 99);
 }
 
 

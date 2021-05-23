@@ -20,17 +20,20 @@ OpenSCAD. Additionally you will need to install the DiscreteOpenSCAD library
 ## Usage
 
 ```openscad
-use <bladegen.scad>
-  
+use <bladegen/bladegen.scad>
+
+CIRCLE = [[3, 0], [2.42705, 1.76336], [0.927051, 2.85317], [-0.927051, 2.85317], [-2.42705, 1.76336], [-3, 0], [-2.42705, -1.76336], [-0.927051, -2.85317], [0.927051, -2.85317], [2.42705, -1.76336]];
+
 translate([0, 0, 0]) bladegen_inch(pitch = 4, diameter = 5, outline = ["rectangular"]);
 translate([0, 25, 0]) bladegen_inch(pitch = 4, diameter = 5, outline = ["trapez", 0.5]);
 translate([0, 50, 0]) bladegen_inch(pitch = 4, diameter = 5, outline = ["elliptical"]);
 translate([0, 75, 0]) bladegen_inch(pitch = 4, diameter = 5, outline = ["squarish"]);
-translate([0, 100, 0]) bladegen_metric(pitch = 0.10, diameter = 0.10, outline = ["rectangular"], aspect = 3);
-translate([0, 125, 0]) bladegen_metric(diameter = 0.10, outline = ["rectangular"], inner_radius = 0.01);
-translate([0, 150, 0]) bladegen_metric(ccw = true, diameter = 0.10, outline = ["rectangular"], inner_radius = 0.01);
-translate([0, 175, 0]) bladegen_metric(turbine = true, diameter = 0.10, outline = ["rectangular"], inner_radius = 0.01);
-translate([0, 250, 0]) bladegen_metric(diameter = 0.10, outline = ["elliptical"], inner_radius = 0.01, blades = 5);
+translate([0, 100, 0]) bladegen_mm(pitch = 100, diameter = 100, outline = ["rectangular"], aspect = 3);
+translate([0, 125, 0]) bladegen_mm(diameter = 100, outline = ["rectangular"], inner_radius = 10);
+translate([0, 150, 0]) bladegen_mm(ccw = true, diameter = 100, outline = ["rectangular"], inner_radius = 10);
+translate([0, 175, 0]) bladegen_mm(diameter = 100, outline = ["rectangular"], inner_radius = 20, root_shape = [CIRCLE, 10]);
+translate([0, 200, 0]) bladegen_mm(turbine = true, diameter = 100, outline = ["rectangular"], inner_radius = 10);
+translate([0, 275, 0]) bladegen_mm(diameter = 100, outline = ["elliptical"], inner_radius = 10, blades = 5);
 ```
 
 If you prefer, open the file `demo.scad` to run the above commands.
@@ -40,16 +43,23 @@ expects meters.
 
 To make a hub, it must be done manually by a code something like
 
-```openscad
-use <bladegen.scad>
 
-bladegen_metric(diameter = 0.20, inner_radius = 0.010, blades = 5, naca_n = 10);
+```openscad
+include <BOSL2/std.scad>
+use <bladegen/bladegen.scad>
+
 difference() {
-  translate([0, 0, -3]) cylinder(r = 15, h = 14, center = true); // note slight overlap due to curvature
-  cylinder(d = 6, h = 99, center = true);
+  union() {
+    root_shape = [right(3, yflip(oval(r = [3, 8], $fn = 30))), 10];
+    up(3) bladegen_mm(diameter = 200, inner_radius = 20, blades = 5, naca_n = 10, root_shape = root_shape);
+    cyl(r = 15, h = 10); // note slight overlap due to curvature
+  }
+  cyl(d = 6, h = 99);
 }
 ```
 
+This code also demontrates ending the blade near the root, though being quite
+flaky to achieve.
 
 
 

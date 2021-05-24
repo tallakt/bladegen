@@ -25,8 +25,8 @@ function elliptical_outline(aspect_ratio = 5, exponent = 2) =
     function (radius) chord_factor * sqrt(1 - clamp(radius, 0, 1)^exponent);
 
 
-function naca_wing(digits = 6320, n = 15) =
-  let (coords = naca_coords(digits, n = n, chord = 1.0))
+function naca_wing(digits = 6320, n = 15, angle_of_attack = 0.0) =
+  let (coords = zrot(-angle_of_attack, naca_coords(digits, n = n, chord = 1.0)))
     function (radius) coords;
 
 
@@ -34,9 +34,10 @@ function naca_wing_sections(wing_sections, n = 15) =
   let ( _dummy0 = map(function (x) assert(is_num(x[0]) && x[0] >= 0.0 && x[0] <= 1.0, "Radius must be 0..1"), wing_sections)
       , _dummy1 = map(function (x) assert(is_num(x[1]) && x[1] >= 0 && x[1] <= 10000 && x[1] == floor(x[1]), "NACA profiles must be four digit numers"), wing_sections)
       , radii = map(function (sect) sect[0], wing_sections)
+      , aoas = map(function (sect) len(sect) >= 3 ? sect[2] : 0.0, wing_sections)
       , _dummy3 = assert(max(radii) >= 1.0, "Radius must be defined until 1.0")
       , _dummy4 = assert(min(radii) <= 0.0, "Radius must be defined from 0.0")
-      , wing_sections_coords = map(function (sect) naca_coords(sect[1], n = n, chord = 1.0), wing_sections)
+      , wing_sections_coords = map(function (sect) zrot(-sect[1], naca_coords(sect[0][1], n = n, chord = 1.0)), zip(wing_sections, aoas))
       , n = len(radii) - 1
       )
     function (radius)

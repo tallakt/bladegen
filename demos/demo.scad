@@ -13,5 +13,6 @@ translate([0, 150, 0]) bladegen(pitch = 40, diameter = 100, ccw = true);
 translate([0, 175, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.30, root = ellipse_root(radius = 0.1));
 translate([0, 200, 0]) bladegen(pitch = 40, diameter = 100, turbine = true);
 translate([0, 225, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = naca_wing_sections([[0.0, 2440], [0.5, 2420], [1.0, 0010]]));
-translate([0, 300, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.15, blades = 5);
+translate([0, 250, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = naca_wing_sections([[0.0, 2440, 8], [0.5, 2420, 8], [1.0, 0010, 0]]));
+translate([0, 325, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.15, blades = 5);
 

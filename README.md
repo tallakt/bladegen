@@ -41,6 +41,7 @@ use <bladegen/bladegen.scad>
 
 INCH_MM = 25.6;
 
+
 translate([0, 0, 0])   bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM);
 translate([0, 25, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = rectangular_outline());
 translate([0, 50, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = rectangular_outline(taper_tip = 0.5));
@@ -51,7 +52,9 @@ translate([0, 150, 0]) bladegen(pitch = 40, diameter = 100, ccw = true);
 translate([0, 175, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.30, root = ellipse_root(radius = 0.1));
 translate([0, 200, 0]) bladegen(pitch = 40, diameter = 100, turbine = true);
 translate([0, 225, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = naca_wing_sections([[0.0, 2440], [0.5, 2420], [1.0, 0010]]));
-translate([0, 300, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.15, blades = 5);
+translate([0, 250, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = naca_wing_sections([[0.0, 2440, 8], [0.5, 2420, 8], [1.0, 0010, 0]]));
+translate([0, 325, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.15, blades = 5);
+
 ```
 
 If you prefer, open the file `demo.scad` to run the above commands.
@@ -124,7 +127,11 @@ use a single NACA profile supply a parameter `outline = naca_wing()` to the
 `bladegen` call. Like for the outlines, the function returns a new function
 that is called later with the correct radius parameter for the nodes. You can
 also specify different wing sections by using the function
-`naca_wing_sections(...)`. The NACA profiles are interpolated at each node.
+`naca_wing_sections(...)`. The NACA profiles are interpolated at each node. The
+parameter to the function receives a list of lists of two or three elements
+each. The first is the radial position along the blade 0 to 1, the second the
+four digit NACA profile and the last one is an optional angle of attack to
+rotate the profile. 
 
 Custom wing section distributions may be made like custom outlines, but it is
 harder to achieve. An example in the code is the function `naca_wing_sections`.
@@ -134,6 +141,6 @@ harder to achieve. An example in the code is the function `naca_wing_sections`.
 
 ```openscad
 bladegen(wing_sections = naca_wing(2408));
-bladegen(wing_sections = naca_wing_sections([[0.0, 2430], [1.0, 2408]]));
+bladegen(wing_sections = naca_wing_sections([[0.0, 2430, 8.0], [1.0, 2408, 10.0]]));
 ```
 

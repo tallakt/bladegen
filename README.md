@@ -41,18 +41,17 @@ use <bladegen/bladegen.scad>
 
 INCH_MM = 25.6;
 
-
 translate([0, 0, 0])   bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM);
 translate([0, 25, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = rectangular_outline());
 translate([0, 50, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = rectangular_outline(taper_tip = 0.5));
-translate([0, 75, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = elliptical_outline(exponent = 2));
+translate([0, 75, 0])  bladegen(pitch = 4 * INCH_MM, diameter = 5 * INCH_MM, outline = elliptical_outline(exponent = 5));
 translate([0, 100, 0]) bladegen(pitch = 40, diameter = 100, outline = elliptical_outline(aspect_ratio = 3));
-translate([0, 125, 0]) bladegen(pitch = 40, diameter = 100, nodes = blade_nodes(inner_radius = 0.10));
+translate([0, 125, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.10);
 translate([0, 150, 0]) bladegen(pitch = 40, diameter = 100, ccw = true);
-translate([0, 175, 0]) bladegen(pitch = 40, diameter = 100, nodes = blade_nodes(inner_radius = 0.30), root = ellipse_root(radius = 0.1));
+translate([0, 175, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.30, root = ellipse_root(radius = 0.1));
 translate([0, 200, 0]) bladegen(pitch = 40, diameter = 100, turbine = true);
-translate([0, 225, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = [[0.0, 2440], [0.5, 2420], [1.0, 0010]]);
-translate([0, 300, 0]) bladegen(pitch = 40, diameter = 100, nodes = blade_nodes(inner_radius = 0.15), blades = 5);
+translate([0, 225, 0]) bladegen(pitch = 40, diameter = 100, wing_sections = naca_wing_sections([[0.0, 2440], [0.5, 2420], [1.0, 0010]]));
+translate([0, 300, 0]) bladegen(pitch = 40, diameter = 100, inner_radius = 0.15, blades = 5);
 ```
 
 If you prefer, open the file `demo.scad` to run the above commands.
@@ -73,12 +72,11 @@ hub_r = 15;
 hub_h = 12;
 hole_d = 6;
 
-nodes = blade_nodes(inner_radius = 0.3);
 root = ellipse_root(r = [0.2, 0.08], rotate = 40.0, radius = 0.10);
 
 difference() {
   union() {
-    bladegen(diameter = 200, pitch = 150, nodes = nodes, root = root, blades = 5);
+    bladegen(diameter = 200, pitch = 150, inner_radius = 0.3, root = root, blades = 5);
     translate([0, 0, -1]) cylinder(r = hub_r, h = hub_h, center = true);
   }
   cyl(d = hole_d, h = 99, center = true, $fn = 30);
@@ -101,30 +99,41 @@ with different sizes. Normally, pitch and diameter are dependent on each other.
 The library is built around the `bladegen` function. All parameters are
 supplied with default values, but you may want to change these.
 
-The `nodes` argument says at which radii (distance 0.0 at root, 1.0 at tip)
-where a profile should be inserted. Normally you would create the `nodes` data
-structure by calling `nodes = blade_nodes(...)`. It accepts the parameters `n`
-for number of points to calculate, and `inner_radius` to skip generating the
-blade closest to the rotational center.
+The `bladegen` will calculate a number of points along the blade radius called
+nodes. You can adjust the accuracy and speed of the blade generation by
+supplying the `segments` parameter to `bladegen`.
 
 The outline is calculated as a chord length at each node point. You would
 normally generate an outline with the function `elliptical_outline(...)` or
-`rectangular_outline(...)`. If you don't use the default nodes, you must
-supply your custom nodes to the function call using the `nodes = ...`
-parameter.
+`rectangular_outline(...)`. These functions return new functions, which may
+supply an outline based on the node position.
 
-The wing section profile is done much the same as the outline calculation, but
-to make things more convenient, profiles are interpolated along the blade
-length. So either you can just supply a NACA 4 digit number to the
-`wing_sections` argument to just use one wing section profile, or you can
-supply a list of pairs containing radius and NACA 2 digit code as many as you
-need. The `bladegen` function will calulate interpolated profiles for each node
-point.
+You may also supply your custom outline literal function like this:
+
+```openscad
+custom_outline = function (radius) (0.5 * (1 - radius)^2 + 0.5) / 5;
+bladegen(outline = custom_outline);
+```
+
+The function should return a chord length based on the radius going from 0.0 to
+1.0. The chord length must also take the desired aspect ratio into
+consideration.
+
+The wing section profile is done much the same as the outline calculation. To
+use a single NACA profile supply a parameter `outline = naca_wing()` to the
+`bladegen` call. Like for the outlines, the function returns a new function
+that is called later with the correct radius parameter for the nodes. You can
+also specify different wing sections by using the function
+`naca_wing_sections(...)`. The NACA profiles are interpolated at each node.
+
+Custom wing section distributions may be made like custom outlines, but it is
+harder to achieve. An example in the code is the function `naca_wing_sections`.
+
 
 ### Example
 
 ```openscad
-bladegen(wing_sections = 2408);
-bladegen(wing_sections = [[0.0, 2430], [1.0, 2408]]);
+bladegen(wing_sections = naca_wing(2408));
+bladegen(wing_sections = naca_wing_sections([[0.0, 2430], [1.0, 2408]]));
 ```
 

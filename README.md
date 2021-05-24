@@ -85,8 +85,14 @@ difference() {
 }
 ```
 
-This code also demontrates ending the blade near the root, though being quite
-flaky to achieve.
+This code also demontrates ending the blade near the root. Any shape can be
+supplied.
+
+If you don't supply a diameter parameter, the diameter will be 1.0 long and the
+pitch is specified as number of diameters advancement per revolution. It may
+sometimes be easier to work in this manner and then just scale the propeller to
+the correct diameter after. If you do this, the relative pitch remains constant
+with different sizes. Normally, pitch and diameter are dependent on each other.
 
 
 
@@ -104,14 +110,21 @@ blade closest to the rotational center.
 The outline is calculated as a chord length at each node point. You would
 normally generate an outline with the function `elliptical_outline(...)` or
 `rectangular_outline(...)`. If you don't use the default nodes, you must
-supplie your custom nodes to the function call using the `nodes = ...`
+supply your custom nodes to the function call using the `nodes = ...`
 parameter.
 
 The wing section profile is done much the same as the outline calculation, but
-to make things more conventient, profiles are interpolated along the blade
+to make things more convenient, profiles are interpolated along the blade
 length. So either you can just supply a NACA 4 digit number to the
 `wing_sections` argument to just use one wing section profile, or you can
 supply a list of pairs containing radius and NACA 2 digit code as many as you
 need. The `bladegen` function will calulate interpolated profiles for each node
 point.
+
+### Example
+
+```openscad
+bladegen(wing_sections = 2408);
+bladegen(wing_sections = [[0.0, 2430], [1.0, 2408]]);
+```
 

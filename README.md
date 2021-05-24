@@ -57,8 +57,10 @@ translate([0, 300, 0]) bladegen(pitch = 40, diameter = 100, nodes = blade_nodes(
 
 If you prefer, open the file `demo.scad` to run the above commands.
 
-All inch lengths and pitch are specified in inces, while the metric version
-expects meters.
+Lengths are given in the OpenSCAD unit which normally is mm. Some other values
+are specified in % of blade length, 0.0 being at the root and 1.0 at the tip.
+The root shape in particular should be scaled so that a width of 1.0 will be as
+wide as the chord where the blade ends (`inner_radius`).
 
 To make a hub, it must be done manually by a code something like
 
@@ -87,4 +89,29 @@ This code also demontrates ending the blade near the root, though being quite
 flaky to achieve.
 
 
+
+## Computational model
+
+The library is built around the `bladegen` function. All parameters are
+supplied with default values, but you may want to change these.
+
+The `nodes` argument says at which radii (distance 0.0 at root, 1.0 at tip)
+where a profile should be inserted. Normally you would create the `nodes` data
+structure by calling `nodes = blade_nodes(...)`. It accepts the parameters `n`
+for number of points to calculate, and `inner_radius` to skip generating the
+blade closest to the rotational center.
+
+The outline is calculated as a chord length at each node point. You would
+normally generate an outline with the function `elliptical_outline(...)` or
+`rectangular_outline(...)`. If you don't use the default nodes, you must
+supplie your custom nodes to the function call using the `nodes = ...`
+parameter.
+
+The wing section profile is done much the same as the outline calculation, but
+to make things more conventient, profiles are interpolated along the blade
+length. So either you can just supply a NACA 4 digit number to the
+`wing_sections` argument to just use one wing section profile, or you can
+supply a list of pairs containing radius and NACA 2 digit code as many as you
+need. The `bladegen` function will calulate interpolated profiles for each node
+point.
 

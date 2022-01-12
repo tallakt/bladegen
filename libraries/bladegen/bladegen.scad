@@ -67,7 +67,7 @@ function clamp(x, low, hi) =
 // note radius given at % blade length, radius % of chord
 function ellipse_root(r = [.4, .2], radius = 0.0, $fn = 40, rotate = 0) =
   assert(radius >= 0.0 && radius <= 1.0, "Radius must be between 0 and 1")
-  [zrot(rotate, oval(r = r, $fn = $fn)), radius];
+  [zrot(rotate, ellipse(r = r, $fn = $fn)), radius];
 
 
 function bladegen_helper(radius, chord, wing_section, pitch, turbine, ccw) = 

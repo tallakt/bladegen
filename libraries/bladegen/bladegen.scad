@@ -2,6 +2,33 @@ include <BOSL2/std.scad>
 include <BOSL2/fnliterals.scad>
 use <naca.scad>
 
+// Function: zip()
+// Usage:
+//   pairs = zip(a,b);
+//   triples = zip(a,b,c);
+//   quads = zip([LIST1,LIST2,LIST3,LIST4]);
+// Topics: List Handling, Iteration
+// Description:
+//   Zips together two or more lists into a single list.  For example, if you have two
+//   lists [3,4,5], and [8,7,6], and zip them together, you get [ [3,8],[4,7],[5,6] ].
+//   The list returned will be as long as the shortest list passed to zip().
+// Arguments:
+//   a = The first list, or a list of lists if b and c are not given.
+//   b = The second list, if given.
+//   c = The third list, if given.
+// Example:
+//   a = [9,8,7,6]; b = [1,2,3];
+//   for (p=zip(a,b)) echo(p);
+//   // ECHO: [9,1]
+//   // ECHO: [8,2]
+//   // ECHO: [7,3]
+function zip(a,b,c) =
+    b!=undef? zip([a,b,if (c!=undef) c]) :
+    let(n = min_length(a))
+    [for (i=[0:1:n-1]) [for (x=a) x[i]]];
+
+
+
 function blade_cosine_spacing(radius0) =
   sin(radius0 * 90);
 
